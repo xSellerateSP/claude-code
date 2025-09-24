@@ -5,7 +5,10 @@ class MatrixTerminal {
       this.chatContainer = document.getElementById('chat-container');
       this.userInput = document.getElementById('user-input');
       this.loadingOverlay = document.getElementById('loading-overlay');
-      this.n8nWebhookUrl = null; // Configure using /config command
+      // Persisted webhook URL (per browser & domain)
+    const savedUrl = localStorage.getItem('n8nWebhookUrl');
+    this.n8nWebhookUrl = savedUrl && savedUrl.startsWith('http') ? savedUrl : '';
+
   
       // Retry policy
       this.maxRetries = 3;         // total tries = maxRetries + 1
@@ -29,9 +32,11 @@ class MatrixTerminal {
   
       // Hide boot sequence after animation
       setTimeout(() => {
-        const el = document.querySelector('.boot-sequence');
-        if (el) el.style.display = 'none';
-      }, 3000);
+        if (!this.n8nWebhookUrl) {
+          this.addSystemMessage('Hint: set your webhook with /config https://auton8n.xsellerate.ie/webhook/<path>');
+        }
+      }, 3800);
+      
   
       // Add welcome message after boot
       setTimeout(() => {
@@ -245,25 +250,39 @@ class MatrixTerminal {
   
     // Allow configuring webhook at runtime
     setN8nWebhookUrl(url) {
-      this.n8nWebhookUrl = url;
-      this.addSystemMessage(`n8n webhook configured: ${url}`);
+        const clean = (url || '').trim();
+        this.n8nWebhookUrl = clean;
+        if (clean) localStorage.setItem('n8nWebhookUrl', clean);
+        this.addSystemMessage(`n8n webhook configured: ${clean || '—'}`);
+        this.testWebhookConnection();
+      }
+      
     }
   
     // Lightweight health check
     async testWebhookConnection() {
-      try {
-        const testUrl = this.n8nWebhookUrl + '?ping=1';
-        const res = await fetch(testUrl, { method: 'GET', signal: AbortSignal.timeout(5000) });
-        setTimeout(() => {
-          this.addSystemMessage(res.ok ? '🟢 n8n webhook connection: ONLINE'
-                                       : '🟡 n8n webhook connection: LIMITED (will use fallback responses)');
-        }, 4000);
-      } catch {
-        setTimeout(() => {
-          this.addSystemMessage('🔴 n8n webhook connection: OFFLINE (will use fallback responses)');
-        }, 4000);
+        if (!this.n8nWebhookUrl) {
+          setTimeout(() => {
+            this.addSystemMessage('🔴 n8n webhook not configured. Use /config <url> to set it.');
+          }, 1000);
+          return;
+        }
+        try {
+          const testUrl = this.n8nWebhookUrl + '?ping=1';
+          const res = await fetch(testUrl, { method: 'GET', signal: AbortSignal.timeout(5000) });
+          setTimeout(() => {
+            this.addSystemMessage(res.ok
+              ? '🟢 n8n webhook connection: ONLINE'
+              : '🟡 n8n webhook connection: LIMITED (will use fallback responses)'
+            );
+          }, 4000);
+        } catch {
+          setTimeout(() => {
+            this.addSystemMessage('🔴 n8n webhook connection: OFFLINE (will use fallback responses)');
+          }, 4000);
+        }
       }
-    }
+      
   
     /* ---------- Commands & Messaging ---------- */
   
