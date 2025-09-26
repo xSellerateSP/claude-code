@@ -23,9 +23,18 @@ class MatrixTerminal {
   
     init() {
       // Keyboard: Enter sends
-      this.userInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') this.sendMessage();
-      });
+      // Enter to send (no Shift). Use keydown; prevent default form submit.
+this.userInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    this.sendMessage();
+  }
+});
+
+// Optional: wire a Send button if present
+const sendBtn = document.getElementById('send-btn');
+if (sendBtn) sendBtn.addEventListener('click', () => this.sendMessage());
+
   
       // Focus input on load
       this.userInput.focus();

@@ -217,6 +217,28 @@ body {
     color: #006600;
 }
 
+/* Send button (next to the input) */
+#send-btn {
+    margin-left: .5rem;
+    padding: .5rem .9rem;
+    background: #00ff41;
+    color: #000;
+    border: 0;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+#send-btn:hover {
+    filter: brightness(0.9);
+}
+
+#send-btn:focus-visible {
+    outline: 2px solid #00ff41;
+    outline-offset: 2px;
+}
+
 /* Cursor Animation */
 .cursor {
     color: #00ff41;
@@ -227,6 +249,9 @@ body {
     0%, 50% { opacity: 1; }
     51%, 100% { opacity: 0; }
 }
+
+/* Glitch Effect */
+
 
 /* Glitch Effect */
 .glitch {
